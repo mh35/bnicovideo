@@ -1,0 +1,3 @@
+module Bnicovideo
+  # Your code goes here...
+end
