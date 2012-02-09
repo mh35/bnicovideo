@@ -5,6 +5,7 @@
 
 require 'rubygems'
 require 'sqlite3'
+require 'inifile'
 
 module Bnicovideo
   class UserSession
@@ -13,6 +14,19 @@ module Bnicovideo
     end
     def self.init_from_firefox
       ini_path = File.join(ENV['APPDATA'], 'Mozilla', 'Firefox', 'profiles.ini')
+      ini_hash = IniFile.load(ini_path)
+      profile_path = nil
+      ini_hash.each do |k, v|
+        next unless v['Name'] == 'default'
+        relative = (v['IsRelative'] != '0')
+        input_path = v['Path']
+        if relative
+          profile_path = File.join(ENV['APPDATA'], 'Mozilla', 'Firefox', input_path)
+        else
+          profile_path = input_path
+        end
+        cookie_path = File.join(profile_path, 'cookies.sqlite')
+      end
     end
     def self.init_from_chrome
       sql_path = File.join(ENV['LOCALAPPDATA'], 'Google','Chrome', 'User Data', 'Default', 'Cookies')
