@@ -87,7 +87,7 @@ module Bnicovideo
           path = cookie_bin[offset_path, path_end]
           value_end = (/\x00/ =~ cookie_bin[offset_value..-1])
           value = cookie_bin[offset_value, value_end]
-          return value if (/nicovideo\.jp$/ =~ url) && (name == 'user_session')
+          return self.new(value) if (/nicovideo\.jp$/ =~ url) && (name == 'user_session')
         end
       end
     end
