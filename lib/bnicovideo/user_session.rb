@@ -49,7 +49,47 @@ module Bnicovideo
     def self.init_from_safari
       cookie_path = File.join(ENV['APPDATA'], 'Apple Computer', 'Safari',
         'Cookies', 'Cookies.binarycookies')
-      raise NotImplementedError, 'I don\'t know how to resolve ' + cookie_path
+      bin = nil
+      File.open(cookie_path, 'rb') do |file|
+        bin = file.read
+      end
+      raise 'Invalid Cookie file' unless bin[0..3] == 'cook'
+      page_num = bin[4..7].unpack('N')[0]
+      pages_length = []
+      page_num.times do |i|
+        page_length = bin[(8 + i * 4)..(11 + i * 4)].unpack('N')[0]
+        pages_length.push(page_length)
+      end
+      read_ptr = 8 + page_num * 4
+      pages_length.each do |pgl|
+        page = bin[read_ptr..(read_ptr + pgl - 1)]
+        cookies_num = page[4..7].unpack('V')[0]
+        nread_ptr = read_ptr
+        cookies_offset = []
+        cookies_num.length.times do |i|
+          cookie_offset = page[(8 + i * 4)..(11 + i * 4)].unpack('V')[0]
+          cookies_offset.push(cookie_offset)
+        end
+        nread_ptr += 12 + cookies_num * 4
+        read_ptr += pgl
+        cookies_offset.each do |cof|
+          cookie_length = page[cof..(cof + 3)].unpack('V')[0]
+          cookie_bin = page[cof..(cof + cookie_length - 1)]
+          offset_url = page[(cof + 16)..(cof + 19)].unpack('V')[0]
+          offset_name = page[(cof + 20)..(cof + 23)].unpack('V')[0]
+          offset_path = page[(cof + 24)..(cof + 27)].unpack('V')[0]
+          offset_value = page[(cof + 28)..(cof + 31)].unpack('V')[0]
+          url_end = (/\x00/ =~ cookie_bin[offset_url..-1])
+          url = cookie_bin[offset_url, url_end]
+          name_end = (/\x00/ =~ cookie_bin[offset_name..-1])
+          name = cookie_bin[offset_name, name_end]
+          path_end = (/\x00/ =~ cookie_bin[offset_path..-1])
+          path = cookie_bin[offset_path, path_end]
+          value_end = (/\x00/ =~ cookie_bin[offset_value..-1])
+          value = cookie_bin[offset_value, value_end]
+          return value if (/nicovideo\.jp$/ =~ url) && (name == 'user_session')
+        end
+      end
     end
   end
 end
