@@ -11,6 +11,8 @@ Gem::Specification.new do |s|
   s.homepage    = ""
   s.summary     = %q{Get niconico douga video information using browser's cookie}
   s.description = %q{Get niconico douga video information using browser's cookie}
+  s.add_dependency('sqlite3', '~>1.3.3')
+  s.add_dependency('inifile', '~>0.4.1')
 
   s.rubyforge_project = "bnicovideo"
 
