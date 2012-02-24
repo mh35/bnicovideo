@@ -7,7 +7,7 @@ Gem::Specification.new do |s|
   s.version     = Bnicovideo::VERSION
   s.platform    = Gem::Platform::RUBY
   s.authors     = ["MH35"]
-  s.email       = ["mh35jp@gmail.com"]
+  s.email       = ["contact@mh35.info"]
   s.homepage    = ""
   s.summary     = %q{Get niconico douga video information using browser's cookie}
   s.description = %q{Get niconico douga video information using browser's cookie}
