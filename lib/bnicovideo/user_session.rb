@@ -9,6 +9,7 @@ require 'inifile'
 
 module Bnicovideo
   class UserSession
+    attr_reader :session_id
     def initialize(sid)
       @session_id = sid
     end
