@@ -6,11 +6,11 @@ Gem::Specification.new do |s|
   s.name        = "bnicovideo"
   s.version     = Bnicovideo::VERSION
   s.platform    = Gem::Platform::RUBY
-  s.authors     = ["TODO: Write your name"]
-  s.email       = ["TODO: Write your email address"]
+  s.authors     = ["MH35"]
+  s.email       = ["mh35jp@gmail.com"]
   s.homepage    = ""
-  s.summary     = %q{TODO: Write a gem summary}
-  s.description = %q{TODO: Write a gem description}
+  s.summary     = %q{Get niconico douga video information using browser's cookie}
+  s.description = %q{Get niconico douga video information using browser's cookie}
 
   s.rubyforge_project = "bnicovideo"
 
