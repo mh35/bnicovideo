@@ -31,6 +31,7 @@ module Bnicovideo
             " where host='.nicovideo.jp' AND name='user_session'")
         return self.new(val)
       end
+      return nil
     end
     def self.init_from_chrome
       sql_path = File.join(ENV['LOCALAPPDATA'], 'Google','Chrome', 'User Data', 'Default', 'Cookies')
@@ -42,9 +43,20 @@ module Bnicovideo
     end
     def self.init_from_ie
       cookies_path = File.join(ENV['APPDATA'], 'Microsoft', 'Windows', 'Cookies', 'Low')
-    end
-    def self.init_from_opera
-      cookie_path = File.join(ENV['APPDATA'], 'Opera', 'Opera', 'profile', 'cookies4.dat')
+      Dir.open(cookies_path) do |dir|
+        dir.each do |fn|
+          next unless (/.*@nicovideo.*/ =~ fn)
+          File.open(fn) do |f|
+            cb = f.read
+            cs = cb.split(/\*\n/)
+            cs.each do |c|
+              ca = c.split(/\n/)
+              return self.new(ca[1]) if ca[0] == 'user_session'
+            end
+          end
+        end
+      end
+      return nil
     end
     def self.init_from_safari
       cookie_path = File.join(ENV['APPDATA'], 'Apple Computer', 'Safari',
@@ -90,6 +102,7 @@ module Bnicovideo
           return self.new(value) if (/nicovideo\.jp$/ =~ url) && (name == 'user_session')
         end
       end
+      return nil
     end
   end
 end
