@@ -1,3 +1,6 @@
+# This file has the top level of module
+
+# Top level module of bnicovideo gem.
 module Bnicovideo
   autoload :Mylist, File.join(File.dirname(__FILE__), 'bnicovideo', 'mylist.rb')
   autoload :Tag, File.join(File.dirname(__FILE__), 'bnicovideo', 'tag.rb')

@@ -1,21 +1,23 @@
 # coding: utf-8
 
-# To change this template, choose Tools | Templates
-# and open the template in the editor.
+# This file has user session class.
 
 require 'rubygems'
 require 'sqlite3'
 require 'inifile'
 
 module Bnicovideo
+  # User session class
   class UserSession
+    # User session ID
     attr_reader :session_id
     def initialize(sid)
       @session_id = sid
     end
+    # Get user session from Firefox(3.0 or later)
     def self.init_from_firefox
       ini_path = File.join(ENV['APPDATA'], 'Mozilla', 'Firefox', 'profiles.ini')
-      ini_hash = IniFile.load(ini_path)
+      ini_hash = IniFile.load(ini_path).to_h
       profile_path = nil
       ini_hash.each do |k, v|
         next unless v['Name'] == 'default'
@@ -34,6 +36,7 @@ module Bnicovideo
       end
       return nil
     end
+    # Get user session from Google Chrome
     def self.init_from_chrome
       sql_path = File.join(ENV['LOCALAPPDATA'], 'Google','Chrome', 'User Data', 'Default', 'Cookies')
       conn = SQLite3::Database.new(sql_path)
@@ -42,6 +45,7 @@ module Bnicovideo
       conn.close
       return self.new(val)
     end
+    # Get user session from Internet Explorer
     def self.init_from_ie
       cookies_path = File.join(ENV['APPDATA'], 'Microsoft', 'Windows', 'Cookies', 'Low')
       Dir.open(cookies_path) do |dir|
@@ -59,6 +63,7 @@ module Bnicovideo
       end
       return nil
     end
+    # Get user session from Safari
     def self.init_from_safari
       cookie_path = File.join(ENV['APPDATA'], 'Apple Computer', 'Safari',
         'Cookies', 'Cookies.binarycookies')

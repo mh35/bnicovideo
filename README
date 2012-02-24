@@ -1,0 +1,4 @@
+== About this gem
+This gem is the Niconico Douga API library which uses browser's cookie.
+== How to install this gem
++gem install bnicovideo+
