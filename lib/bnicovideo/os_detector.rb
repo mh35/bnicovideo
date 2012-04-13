@@ -7,7 +7,7 @@ module Bnicovideo
       if /mswin(?!ce)|mingw|cygwin|bccwin/ =~ RUBY_PLATFORM
         # Windows
         return Bnicovideo::WindowsDetector.check
-      elsif /dawrin/ =~ RUBY_PLATFORM
+      elsif /darwin/ =~ RUBY_PLATFORM
         return 'macosx'
       elsif /java/ =~ RUBY_PLATFORM
         # JRuby

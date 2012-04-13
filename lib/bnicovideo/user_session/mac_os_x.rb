@@ -7,8 +7,8 @@ require 'sqlite3'
 require 'inifile'
 
 module Bnicovideo
-  module UserSession
-    class MacOsX
+  class UserSession
+    module MacOsX
       def self.init_from_firefox
         base_path = File.join(ENV['HOME'], 'Library', 'Application Support', 'Firefox')
         ini_path = File.join(base_path, 'profiles.ini')
@@ -88,15 +88,15 @@ module Bnicovideo
           end
           return nil
         else
-          xml = REXML::Document.new(File.read)
+          xml = REXML::Document.new(File.read(File.join(cookie_base_path, 'Cookies.plist')))
           xml.root.elements.each('array/dict') do |elem|
             if elem.elements['key[text()="Domain"]'] &&
-                elem.elements['key[text()="Domain"]'].next_sibling &&
-                elem.elements['key[text()="Domain"]'].next_sibling.text == '.nicovideo.jp' &&
+                elem.elements['key[text()="Domain"]'].next_element &&
+                elem.elements['key[text()="Domain"]'].next_element.text == '.nicovideo.jp' &&
                 elem.elements['key[text()="Name"]'] &&
-                elem.elements['key[text()="Name"]'].next_sibling &&
-                elem.elements['key[text()="Name"]'].next_sibling.text == 'user_session'
-              return elem.elements['key[text()="Value"]'].next_sibling.text
+                elem.elements['key[text()="Name"]'].next_element &&
+                elem.elements['key[text()="Name"]'].next_element.text == 'user_session'
+              return elem.elements['key[text()="Value"]'].next_element.text
             end
           end
           return nil
