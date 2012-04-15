@@ -62,7 +62,7 @@ module Bnicovideo
             cookies_num = page[4..7].unpack('V')[0]
             nread_ptr = read_ptr
             cookies_offset = []
-            cookies_num.length.times do |i|
+            cookies_num.times do |i|
               cookie_offset = page[(8 + i * 4)..(11 + i * 4)].unpack('V')[0]
               cookies_offset.push(cookie_offset)
             end
