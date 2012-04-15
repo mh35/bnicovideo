@@ -1,19 +1,16 @@
 # To change this template, choose Tools | Templates
 # and open the template in the editor.
 
-require 'win32ole'
+require 'Win32API'
 
 module Bnicovideo
   module WindowsDetector
     def self.check
-      wmi = WIN32OLE.connect('winmgmts://')
-      mocol = wmi.InstanceOf('Win32_OperatingSystem')
-      mgos = nil
-      mocol.each do |x|
-        mgos = x
-        break
-      end
-      osv = mgos.os_version.split('.')[0]
+      gvex = Win32API.new('kernel32','GetVersionEx','P','I')
+      buf = [148,0,0,0,0,"\0"*128].pack("LLLLLa128")
+      gvex.call(buf)
+      arr = buf[0,20].unpack("LLLLL")
+      osv = arr[1].to_s
       if osv == '6'
         return 'winvista'
       elsif osv == '5'
