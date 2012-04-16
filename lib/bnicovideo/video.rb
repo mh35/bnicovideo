@@ -5,6 +5,8 @@
 require 'net/http'
 require 'rexml/document'
 require 'date'
+require 'cgi'
+require 'uri'
 
 module Bnicovideo
   # This class represents video of Niconico Douga
@@ -90,6 +92,113 @@ module Bnicovideo
         @deleted = true
       end
       @info_got = true
+    end
+    # Download video
+    # filename :: File name or stream. If nil, return binary
+    def download(filename = nil)
+      self.get_info
+      return nil if @deleted
+      resp = nil
+      Net::HTTP.start('www.nicovideo.jp') do |http|
+        resp = http.get('/watch/' + @video_id,
+          {'Cookie' => 'user_session=' + @user_session.session_id})
+      end
+      adc = {}
+      resp.each do |k, v|
+        if k.downcase == 'set-cookie'
+          z = v.split(';')
+          z.map!{|cp| cp.gsub(/(^ +)|( +$)/, '')}
+          hsh = {}
+          z.each do |ckchr|
+            ckchra = ckchr.split('=', 2)
+            hsh[ckchra[0]] = ckchra[1]
+          end
+          hsh.each do |nk, nv|
+            adc[nk] = nv unless ['expires', 'path', 'domain', 'secure'].include?(nk)
+          end
+        end
+      end
+      movie_url = access_getflv_api['url'][0]
+      return if movie_url == nil
+      resp3 = nil
+      huri = URI.parse(movie_url)
+      cks = {'user_session' => @user_session.session_id}.merge(adc)
+      ckarr = []
+      cks.each do |ckk, ckv|
+        ckarr.push(ckk + '=' + ckv)
+      end
+      ckstr = ckarr.join('; ')
+      Net::HTTP.start(huri.host) do |http|
+        resp3 = http.get(huri.request_uri, {'Cookie' => ckstr})
+      end
+      return unless resp3.code.to_i == 200
+      if filename == nil
+        return resp3.body
+      elsif filename.respond_to?(:write)
+        filename.write(resp3.body)
+      else
+        File.open(filename, 'wb') do |file|
+          file.write resp3.body
+        end
+      end
+    end
+    # Get comments
+    def get_comments
+      self.get_info
+      return [] if @deleted
+      hsh = access_getflv_api
+      tid = hsh['thread_id'][0]
+      return unless tid
+      ms = hsh['ms'][0]
+      uid = hsh['user_id'][0]
+      req = '<packet><thread thread="' + tid + '" version="20090904" user_id="' +
+        uid + '" score="1" /><thread_leaves thread="' + tid + '" user_id="' +
+        uid + '" scores="1">0-' + ((@length + 59) / 60).to_s + ':100, 1000' +
+        '</thread_leaves><thread thread="' + tid + '" version="20061206" ' +
+        'res_from="-1000" fork="1" scores="1" /></packet>'
+      uri = URI.parse(ms)
+      resp = nil
+      Net::HTTP.start(uri.host) do |http|
+        resp = http.post(uri.request_uri, req,
+          {'Cookie' => 'user_session=' + @user_session.session_id,
+          'Content-Type' => 'application/xml'})
+      end
+      xml = REXML::Document.new(resp.body)
+      ret = []
+      xml.root.elements.each('chat') do |chn|
+        comno = chn.attributes['no'].to_i
+        vat = chn.attributes['vpos'].to_i / 100.0
+        tat = Time.at(chn.attributes['date'].to_i)
+        is184 = chn.attributes['anonymity'] == '1'
+        user_id = chn.attributes['user_id']
+        is_premium = chn.attributes['premium'] == '1'
+        score = 0
+        if chn.attributes['score']
+          score = chn.attributes['score'].to_i
+        end
+        is_creator_comment = chn.attributes['fork'] == '1'
+        ret.push({
+          :comment_no => comno,
+          :video_position => vat,
+          :comment_at => tat,
+          :anonymous? => is184,
+          :user_id => user_id,
+          :premium? => is_premium,
+          :score => score,
+          :creator_comment? => is_creator_comment
+          })
+      end
+      return ret
+    end
+    # Access getflv API
+    def access_getflv_api
+      resp2 = nil
+      Net::HTTP.start('flapi.nicovideo.jp') do |http|
+        resp2 = http.get('/api/getflv/' + @video_id + '?as3=1',
+          {'Cookie' => 'user_session=' + @user_session.session_id})
+      end
+      flvhsh = CGI.parse(resp2.body)
+      return flvhsh
     end
   end
 end
